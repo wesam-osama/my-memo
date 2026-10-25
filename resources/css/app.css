@@ -1,0 +1,180 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+@theme {
+    --font-sans: 'Inter', 'Cairo', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* design tokens (same palette as the Figma screens) */
+    --color-brand-50: #e6edfb;
+    --color-brand-500: #3b6be0;
+    --color-brand-600: #1d4ed8;
+    --color-brand-700: #1a43bd;
+    --color-accent-600: #0ea5e9; /* sky-500: same as the landing page */
+    --color-accent-700: #0284c7; /* sky-600 */
+    --color-ink: #0f1b33;
+    --color-muted: #64748b;
+    --color-line: #d9e1ee;
+}
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ===== TalentBridge design system (hb-*) ===== */
+:root {
+    --hb-blue: #1d4ed8;
+    --hb-accent: #1d4ed8;
+    --hb-accent-dark: #1a43bd;
+    --hb-navy: #0f1b33;
+    --hb-text: #1e293b;
+    --hb-muted: #64748b;
+    --hb-border: #d9e1ee;
+    --hb-surface: #ffffff;
+    --hb-page: #f4f7fc;
+    --hb-info-soft: #e6edfb;
+    --hb-success: #15803d;
+    --hb-success-soft: #dcfce7;
+    --hb-error: #dc2626;
+    --hb-error-soft: #fee2e2;
+    --hb-pending: #b45309;
+    --hb-pending-soft: #fef3c7;
+    --hb-teal: #0d9488;
+    --hb-sidebar: #0f1b33;
+    --hb-nav-muted: #b6c3dd;
+}
+.dark {
+    --hb-blue: #6f94f0;
+    --hb-accent: #3b6be0;
+    --hb-accent-dark: #2f58c4;
+    --hb-navy: #eaf0fc;
+    --hb-text: #dbe4f5;
+    --hb-muted: #94a3bd;
+    --hb-border: #26334f;
+    --hb-surface: #111b30;
+    --hb-page: #0b1324;
+    --hb-info-soft: #1a2b52;
+    --hb-success: #4ade80;
+    --hb-success-soft: #12301f;
+    --hb-error: #f87171;
+    --hb-error-soft: #3a1818;
+    --hb-pending: #fbbf24;
+    --hb-pending-soft: #3a2a0c;
+    --hb-teal: #2dd4bf;
+    --hb-sidebar: #0a1120;
+    --hb-nav-muted: #9fb0d0;
+}
+
+@theme inline {
+    --color-hb-blue: var(--hb-blue);
+    --color-hb-accent: var(--hb-accent);
+    --color-hb-accent-dark: var(--hb-accent-dark);
+    --color-hb-navy: var(--hb-navy);
+    --color-hb-text: var(--hb-text);
+    --color-hb-muted: var(--hb-muted);
+    --color-hb-border: var(--hb-border);
+    --color-hb-surface: var(--hb-surface);
+    --color-hb-page: var(--hb-page);
+    --color-hb-info-soft: var(--hb-info-soft);
+    --color-hb-success: var(--hb-success);
+    --color-hb-success-soft: var(--hb-success-soft);
+    --color-hb-error: var(--hb-error);
+    --color-hb-error-soft: var(--hb-error-soft);
+    --color-hb-pending: var(--hb-pending);
+    --color-hb-pending-soft: var(--hb-pending-soft);
+    --color-hb-teal: var(--hb-teal);
+    --color-hb-sidebar: var(--hb-sidebar);
+    --color-hb-nav-muted: var(--hb-nav-muted);
+    --radius-hb: 1.25rem;
+    --shadow-hb-sm: 0 1px 2px rgb(15 27 51 / .06);
+    --shadow-hb-md: 0 8px 24px -8px rgb(15 27 51 / .14);
+    --shadow-hb-lg: 0 24px 48px -16px rgb(15 27 51 / .22);
+}
+
+@layer base {
+    body { font-family: var(--font-sans); }
+    html { scroll-behavior: smooth; }
+}
+
+@layer components {
+    .hb-container { width: 100%; max-width: 76rem; margin-inline: auto; padding-inline: 1.25rem; }
+    @media (min-width: 1024px) { .hb-container { padding-inline: 2rem; } }
+
+    .hb-surface {
+        background: var(--hb-surface);
+        border: 1px solid var(--hb-border);
+        border-radius: var(--radius-hb);
+        box-shadow: var(--shadow-hb-sm);
+    }
+
+    .hb-nav-link { font-size: .875rem; font-weight: 500; color: var(--hb-text); transition: color .15s; }
+    .hb-nav-link:hover { color: var(--hb-blue); }
+
+    .hb-btn-primary, .hb-btn-outline, .hb-btn-ghost {
+        display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+        min-height: 2.5rem; padding: .5rem 1.1rem; border-radius: 9999px;
+        font-size: .875rem; font-weight: 600; transition: background .15s, box-shadow .15s, transform .15s;
+    }
+    .hb-btn-primary { background: var(--hb-accent); color: #fff; box-shadow: var(--shadow-hb-sm); }
+    .hb-btn-primary:hover { background: var(--hb-accent-dark); box-shadow: var(--shadow-hb-md); }
+    .hb-btn-outline { border: 1px solid var(--hb-blue); color: var(--hb-blue); background: var(--hb-surface); }
+    .hb-btn-outline:hover { background: var(--hb-info-soft); }
+    .hb-btn-ghost { color: var(--hb-text); }
+    .hb-btn-ghost:hover { background: var(--hb-page); }
+
+    .hb-label { display: block; margin-bottom: .375rem; font-size: .875rem; font-weight: 500; color: var(--hb-navy); }
+    .hb-input {
+        width: 100%; min-height: 2.75rem; padding: .5rem .875rem;
+        background: var(--hb-surface); color: var(--hb-text);
+        border: 1px solid var(--hb-border); border-radius: .75rem; font-size: .875rem;
+        transition: border-color .15s, box-shadow .15s;
+    }
+    .hb-input:focus { outline: none; border-color: var(--hb-blue); box-shadow: 0 0 0 3px var(--hb-info-soft); }
+    .hb-field-error { margin-top: .25rem; font-size: .8125rem; color: var(--hb-error); }
+    .hb-checkbox { width: 1rem; height: 1rem; accent-color: var(--hb-accent); }
+
+    .hb-modal-overlay, .hb-modal-static-overlay { background: rgb(15 27 51 / .55); backdrop-filter: blur(2px); }
+    .hb-modal, .hb-modal-static {
+        background: var(--hb-surface); color: var(--hb-text);
+        border: 1px solid var(--hb-border); border-radius: var(--radius-hb); box-shadow: var(--shadow-hb-lg);
+    }
+    .hb-modal-close { color: var(--hb-muted); }
+    .hb-modal-close:hover { color: var(--hb-navy); }
+    .hb-tabs { border-bottom: 1px solid var(--hb-border); }
+}
+
+@keyframes ring {
+  0%   { transform: scale(.92); opacity: .9; }
+  100% { transform: scale(1.18); opacity: 0; }
+}
+.hotspot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 1rem;
+  border: 3px solid #fff;
+  animation: ring 1.8s ease-out infinite;
+}
+@media (prefers-reduced-motion: reduce) { .hotspot::before { animation: none; } }
+
+/* ===== Enter-the-hall transition (zoom into the entrance) ===== */
+.scene-img { transform: scale(1); will-change: transform; }
+
+.scene-entering .scene-img {
+  transform: scale(var(--enter-scale, 4.5));
+  transform-origin: var(--enter-x, 50%) var(--enter-y, 50%);
+  transition: transform 2.6s cubic-bezier(.65, 0, .35, 1);
+}
+/* hide all overlay UI (text cards, hotspots) while zooming */
+.scene-entering .scene-ui { opacity: 0 !important; transition: opacity .5s ease; pointer-events: none; }
+
+/* white-sky flash at the end, as if we step through the door */
+.scene-fade { position: absolute; inset: 0; z-index: 40; background: #fff; opacity: 0; pointer-events: none; }
+.scene-entering .scene-fade { opacity: 1; transition: opacity .9s ease 1.7s; }
+
+/* arrival on the next scene: settle from slightly zoomed-in */
+@keyframes scene-arrive { from { transform: scale(1.18); opacity: .0; } to { transform: scale(1); opacity: 1; } }
+.scene-arrive .scene-img { animation: scene-arrive 1.4s cubic-bezier(.22, 1, .36, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-entering .scene-img, .scene-entering .scene-fade, .scene-arrive .scene-img { transition: none; animation: none; }
+}

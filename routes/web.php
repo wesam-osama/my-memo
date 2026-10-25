@@ -1,0 +1,182 @@
+<?php
+
+use App\Frontend\Account\AccountController;
+use App\Frontend\Admin\AdminController;
+use App\Frontend\Application\ApplicationController;
+use App\Frontend\Auth\AuthController;
+use App\Frontend\Candidate\CandidateController;
+use App\Frontend\Company\CompanyController;
+use App\Frontend\Employee\EmployeeController;
+use App\Frontend\Exam\ExamController;
+use App\Frontend\Home\HomeController;
+use App\Frontend\Interview\InterviewController;
+use App\Http\Controllers\HallController;
+use App\Frontend\Job\JobController;
+use App\Frontend\Lookup\LookupController;
+use App\Frontend\Offer\OfferController;
+use App\Http\Controllers\Frontend\LocaleController;
+use Illuminate\Support\Facades\Route;
+
+
+// Frontend Routes
+Route::prefix('/')->name('frontend.')->group(function () {
+
+    // Site start = the virtual hall: entrance (exterior) -> landing -> lobby -> exhibit halls
+    Route::get('/', [HallController::class, 'exterior'])->name('home');
+    Route::get('/landing', [HallController::class, 'landing'])->name('hall.landing');
+    Route::get('/lobby', [HallController::class, 'lobby'])->middleware('auth')->name('hall.lobby');
+    Route::get('/exhibit', [HallController::class, 'exhibit'])->middleware('auth')->name('hall.exhibit');
+    // the plain (non-hall) home page
+    Route::get('/welcome', [HomeController::class, 'index'])->name('welcome');
+    Route::get('/about', [HomeController::class, 'about'])->name('about');
+    Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+    Route::get('/workspace', [HomeController::class, 'workspace'])->middleware('auth')->name('workspace');
+    Route::get('/locale/{locale}', LocaleController::class)->name('locale.switch');
+
+    // Public jobs + lookups (no login needed)
+    Route::prefix('jobs')->name('jobs.')->group(function () {
+        Route::get('/', [JobController::class, 'getJobs'])->name('index');
+        Route::get('/search', [JobController::class, 'searchJobs'])->name('search');
+        Route::get('/{jobId}', [JobController::class, 'getJob'])->name('show');
+    });
+    Route::prefix('lookup')->name('lookup.')->group(function () {
+        Route::get('/countries', [LookupController::class, 'getCountries'])->name('countries');
+        Route::get('/categories', [LookupController::class, 'getCategories'])->name('categories');
+        Route::get('/skills', [LookupController::class, 'getSkills'])->name('skills');
+    });
+
+    // Auth (AccountAPI)
+    Route::prefix('account')->middleware('guest')->name('account.')->group(function () {
+        Route::get('/login', [AuthController::class, 'login'])->name('login');
+        Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+        Route::get('/register', [AuthController::class, 'register'])->name('register');
+        Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
+    });
+    Route::prefix('account')->middleware('auth')->name('account.')->group(function () {
+        Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
+        // same page for every account type (topbar link) - see AccountController
+        Route::get('/change-password', [AccountController::class, 'changePasswordForm'])->name('change-password');
+        Route::post('/change-password', [AccountController::class, 'changePassword'])->name('change-password.submit');
+    });
+
+    // Candidate
+    Route::prefix('candidate')->middleware(['auth', 'account:candidate'])->name('candidate.')->group(function () {
+        Route::view('/dashboard', 'frontend.candidate.dashboard')->name('dashboard');
+        Route::get('/profile', [CandidateController::class, 'getProfile'])->name('profile');
+        Route::get('/profile/update', [CandidateController::class, 'updateProfile'])->name('profile.update');
+        Route::post('/profile/update', [CandidateController::class, 'updateProfile'])->name('profile.update.submit');
+
+        Route::get('/resume/upload', [CandidateController::class, 'uploadResume'])->name('resume.upload');
+        Route::post('/resume/upload', [CandidateController::class, 'uploadResume'])->name('resume.upload.submit');
+        Route::get('/resume/{resumeId}/download', [CandidateController::class, 'downloadResume'])->name('resume.download');
+        Route::delete('/resume/{resumeId}/delete', [CandidateController::class, 'deleteResume'])->name('resume.delete');
+        Route::get('/education/add', [CandidateController::class, 'addEducation'])->name('education.add');
+        Route::post('/education/add', [CandidateController::class, 'addEducation'])->name('education.add.submit');
+        Route::get('/experience/add', [CandidateController::class, 'addExperience'])->name('experience.add');
+        Route::post('/experience/add', [CandidateController::class, 'addExperience'])->name('experience.add.submit');
+        Route::get('/skills/add', [CandidateController::class, 'addSkill'])->name('skills.add');
+        Route::post('/skills/add', [CandidateController::class, 'addSkill'])->name('skills.add.submit');
+
+        Route::get('/vacancies', [CandidateController::class, 'getVacancies'])->name('vacancies.index');
+        Route::get('/vacancies/{vacancyId}/apply', [CandidateController::class, 'applyForVacancy'])->name('vacancies.apply');
+        Route::post('/vacancies/{vacancyId}/apply', [CandidateController::class, 'applyForVacancy'])->name('vacancies.apply.submit');
+        Route::get('/applications', [CandidateController::class, 'getApplications'])->name('applications.index');
+        Route::get('/applications/{applicationId}', [CandidateController::class, 'getApplication'])->name('applications.show');
+        Route::post('/applications/{applicationId}/withdraw', [ApplicationController::class, 'withdrawApplication'])->name('applications.withdraw');
+
+        Route::get('/exams', [ExamController::class, 'getCandidateExams'])->name('exams.index');
+        Route::get('/exams/{examId}/start', [ExamController::class, 'startExam'])->name('exams.start');
+        Route::post('/exams/{examId}/start', [ExamController::class, 'startExam'])->name('exams.start.submit');
+        Route::get('/exams/{attemptId}/submit', [ExamController::class, 'submitExam'])->name('exams.submit');
+        Route::post('/exams/{attemptId}/submit', [ExamController::class, 'submitExam'])->name('exams.submit.submit');
+        Route::get('/exams/{attemptId}/result', [ExamController::class, 'getExamResult'])->name('exams.result');
+
+        Route::get('/interviews', [InterviewController::class, 'getInterviews'])->name('interviews.index');
+        Route::get('/interviews/slots', [InterviewController::class, 'getAvailableSlots'])->name('interviews.slots');
+        Route::get('/interviews/book', [InterviewController::class, 'bookInterview'])->name('interviews.book');
+        Route::post('/interviews/book', [InterviewController::class, 'bookInterview'])->name('interviews.book.submit');
+        Route::get('/interviews/{interviewId}/reschedule', [InterviewController::class, 'rescheduleInterview'])->name('interviews.reschedule');
+        Route::post('/interviews/{interviewId}/reschedule', [InterviewController::class, 'rescheduleInterview'])->name('interviews.reschedule.submit');
+        Route::post('/interviews/{interviewId}/cancel', [InterviewController::class, 'cancelInterview'])->name('interviews.cancel');
+
+        Route::get('/offers', [OfferController::class, 'getOffers'])->name('offers.index');
+        Route::get('/offers/{offerId}', [OfferController::class, 'getOffer'])->name('offers.show');
+        Route::post('/offers/{offerId}/accept', [OfferController::class, 'acceptOffer'])->name('offers.accept');
+        Route::get('/offers/{offerId}/reject', [OfferController::class, 'rejectOffer'])->name('offers.reject');
+        Route::post('/offers/{offerId}/reject', [OfferController::class, 'rejectOffer'])->name('offers.reject.submit');
+        Route::get('/change-password', [AccountController::class, 'changePasswordForm'])->name('change-password');
+        Route::post('/change-password', [AccountController::class, 'changePassword'])->name('change-password.submit');
+        Route::delete('/delete-account', [AccountController::class, 'deleteAccount'])->name('delete-account');
+        Route::get('/join-company', [EmployeeController::class, 'requestToJoin'])->name('join-company');
+        Route::post('/join-company', [EmployeeController::class, 'requestToJoin'])->name('join-company.submit');
+    });
+
+    // Company
+    Route::prefix('company')->middleware(['auth', 'account:company'])->name('company.')->group(function () {
+        Route::view('/dashboard', 'frontend.company.dashboard')->name('dashboard');
+        Route::get('/profile', [CompanyController::class, 'getProfile'])->name('profile');
+        Route::get('/profile/update', [CompanyController::class, 'updateProfile'])->name('profile.update');
+        Route::post('/profile/update', [CompanyController::class, 'updateProfile'])->name('profile.update.submit');
+
+        Route::get('/vacancies', [CompanyController::class, 'getVacancies'])->name('vacancies.index');
+        Route::get('/vacancies/create', [CompanyController::class, 'createVacancy'])->name('vacancies.create');
+        Route::post('/vacancies/create', [CompanyController::class, 'createVacancy'])->name('vacancies.create.submit');
+        Route::get('/vacancies/{vacancyId}/update', [CompanyController::class, 'updateVacancy'])->name('vacancies.update');
+        Route::post('/vacancies/{vacancyId}/update', [CompanyController::class, 'updateVacancy'])->name('vacancies.update.submit');
+        Route::delete('/vacancies/{vacancyId}/delete', [CompanyController::class, 'deleteVacancy'])->name('vacancies.delete');
+        Route::get('/vacancies/{vacancyId}/applications', [CompanyController::class, 'getApplications'])->name('vacancies.applications');
+        Route::get('/applications/{applicationId}/status', [CompanyController::class, 'updateApplicationStatus'])->name('applications.status');
+        Route::post('/applications/{applicationId}/status', [CompanyController::class, 'updateApplicationStatus'])->name('applications.status.submit');
+
+        Route::get('/exams/create', [CompanyController::class, 'createExam'])->name('exams.create');
+        Route::post('/exams/create', [CompanyController::class, 'createExam'])->name('exams.create.submit');
+        Route::get('/exams/{examId}/questions/add', [ExamController::class, 'addQuestion'])->name('exams.questions.add');
+        Route::post('/exams/{examId}/questions/add', [ExamController::class, 'addQuestion'])->name('exams.questions.add.submit');
+        Route::get('/offers/create', [CompanyController::class, 'createOffer'])->name('offers.create');
+        Route::post('/offers/create', [CompanyController::class, 'createOffer'])->name('offers.create.submit');
+        Route::get('/interviews/{interviewId}/evaluation', [InterviewController::class, 'submitEvaluation'])->name('interviews.evaluation');
+        Route::post('/interviews/{interviewId}/evaluation', [InterviewController::class, 'submitEvaluation'])->name('interviews.evaluation.submit');
+        Route::get('/salary-benchmark', [JobController::class, 'getSalaryBenchmark'])->name('salary-benchmark');
+
+        Route::get('/change-password', [AccountController::class, 'changePasswordForm'])->name('change-password');
+        Route::post('/change-password', [AccountController::class, 'changePassword'])->name('change-password.submit');
+        Route::delete('/delete-account', [AccountController::class, 'deleteAccount'])->name('delete-account');
+
+        Route::get('/employees', [EmployeeController::class, 'getEmployees'])->name('employees.index');
+        Route::post('/employees/{employeeId}/approve', [EmployeeController::class, 'approveEmployee'])->name('employees.approve');
+        Route::get('/employees/{employeeId}/reject', [EmployeeController::class, 'rejectEmployee'])->name('employees.reject');
+        Route::post('/employees/{employeeId}/reject', [EmployeeController::class, 'rejectEmployee'])->name('employees.reject.submit');
+        Route::delete('/employees/{employeeId}/remove', [EmployeeController::class, 'removeEmployee'])->name('employees.remove');
+
+        // --- مسارات الـ Views اللي عملناها للإختبار المباشر ---
+        Route::view('/applicants/pipeline', 'company.applicants.pipeline');
+        Route::view('/applicants/{id}', 'company.applicants.show');
+        Route::view('/employees/requests', 'company.employees.requests');
+        Route::view('/exams', 'company.exams.index');
+        Route::view('/exams/builder', 'company.exams.builder');
+        Route::view('/exams/attempt', 'company.exams.attempt');
+        Route::view('/exams/proctoring', 'company.exams.proctoring');
+        Route::view('/exams/results', 'company.exams.results');
+        Route::view('/interviews', 'company.interviews.index');
+        Route::view('/jobs', 'company.jobs.index');
+        Route::view('/jobs/show', 'company.jobs.show');
+        Route::view('/jobs/wizard/basics', 'company.jobs.wizard.basics');
+        Route::view('/jobs/wizard/requirements', 'company.jobs.wizard.requirements');
+        Route::view('/jobs/wizard/stages', 'company.jobs.wizard.stages');
+        Route::view('/jobs/wizard/visibility', 'company.jobs.wizard.visibility');
+        Route::view('/offers', 'company.offers.index');
+    });
+
+    // Admin (Super Admin)
+    Route::view('/admin/dashboard', 'frontend.admin.dashboard')->middleware(['auth', 'account:admin'])->name('dashboard');
+    Route::prefix('admin')->middleware(['auth', 'account:admin'])->name('admin.')->group(function () {
+        Route::get('/companies', [AdminController::class, 'getCompanies'])->name('companies.index');
+        Route::post('/companies/{companyId}/approve', [AdminController::class, 'approveCompany'])->name('companies.approve');
+        Route::get('/companies/{companyId}/reject', [AdminController::class, 'rejectCompany'])->name('companies.reject');
+        Route::post('/companies/{companyId}/reject', [AdminController::class, 'rejectCompany'])->name('companies.reject.submit');
+        Route::get('/users', [AdminController::class, 'getUsers'])->name('users.index');
+        Route::get('/users/{userId}/status', [AdminController::class, 'updateUserStatus'])->name('users.status');
+        Route::post('/users/{userId}/status', [AdminController::class, 'updateUserStatus'])->name('users.status.submit');
+        Route::get('/audit-logs', [AdminController::class, 'getAuditLogs'])->name('audit-logs.index');
+    });
+});

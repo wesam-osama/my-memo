@@ -1,0 +1,25 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('skills', function (Blueprint $table) {
+            $table->id();
+            $table->string('name')->unique();
+            $table->enum('type', ['soft', 'tech'])->default('soft');
+            $table->boolean('accepted')->default(false);  // true = approved by admin; user-suggested skills start as false
+
+           // created_at, updated_at, uid, luid
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('skills');
+    }
+};
